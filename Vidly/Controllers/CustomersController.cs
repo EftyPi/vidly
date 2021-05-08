@@ -5,6 +5,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using Vidly.Models;
+using Vidly.ViewModels;
 
 namespace Vidly.Controllers
 {
@@ -28,6 +29,63 @@ namespace Vidly.Controllers
             // to execute the database query must convert it ToList()
             IEnumerable<Customer> customers = _context.Customers.Include(c => c.MembershipType).ToList();
             return View(customers);
+        }
+
+        public ActionResult New()
+        {
+            // get the membership types from the database
+            IEnumerable<MembershipType> membershipTypes = _context.MembershipTypes.ToList();
+            CustomerFormViewModel viewModel = new CustomerFormViewModel
+            {
+                MembershipTypes = membershipTypes
+            };
+            return View("CustomerForm", viewModel);
+        }
+
+        [HttpPost]
+        public ActionResult Save(Customer customer)
+        {
+            // check if we need to create or update
+            if (customer.Id== 0)
+            {
+                // create
+                // add to context before adding to the database
+                _context.Customers.Add(customer);
+            }
+            else
+            {
+                // update
+                Customer customerInDb = _context.Customers.Single(c => c.Id == customer.Id);
+                // option 1: not a good option because it is prone to exposing the database
+                // TryValidateModel(customerInDb);
+                // better option 
+                customerInDb.Name = customer.Name;
+                customerInDb.BirthDate = customer.BirthDate;
+                customerInDb.MembershipTypeId = customer.MembershipTypeId;
+                customerInDb.IsSubscribedToNewsletter = customer.IsSubscribedToNewsletter;
+            }
+            
+            // add to db
+            _context.SaveChanges();
+            return RedirectToAction("Index", "Customers");
+        }
+
+        public ActionResult Edit(int id)
+        {
+            Customer customer = _context.Customers.SingleOrDefault(c => c.Id == id);
+            if (customer == null)
+            {
+                return HttpNotFound();
+            }
+
+            CustomerFormViewModel viewModel = new CustomerFormViewModel
+            {
+                Customer = customer,
+                MembershipTypes = _context.MembershipTypes
+            };
+            
+            // specify name otherwise it will look for a view with a name 'Edit'
+            return View("CustomerForm", viewModel);
         }
 
         public ActionResult Details(int id)

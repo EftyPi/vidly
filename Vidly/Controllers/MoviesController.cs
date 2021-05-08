@@ -36,6 +36,57 @@ namespace Vidly.Controllers
             return View(movie);
         }
 
+        public ActionResult New()
+        {
+            IEnumerable<Genre> genres = _context.Genres.ToList();
+            MovieFormViewModel viewModel = new MovieFormViewModel
+            {
+                Genres = genres
+            };
+            return View("MovieForm", viewModel);
+        }
+
+        [HttpPost]
+        public ActionResult Save(Movie movie)
+        {
+            if (movie.Id == 0)
+            {
+                movie.DateAdded = DateTime.Now;
+                // add movie
+                _context.Movies.Add(movie);
+            }
+            else
+            {
+                // update movie
+                Movie movieInDb = _context.Movies.Single(m => m.Id == movie.Id);
+                movieInDb.Name = movie.Name;
+                movieInDb.GenreId = movie.GenreId;
+                movieInDb.ReleaseDate = movie.ReleaseDate;
+                movieInDb.NumberInStock = movie.NumberInStock;
+            }
+
+            _context.SaveChanges();
+            return RedirectToAction("Index", "Movies");
+        }
+
+        public ActionResult Edit(int id)
+        {
+            Movie movie = _context.Movies.SingleOrDefault(m => m.Id == id);
+            if (movie == null)
+            {
+                return HttpNotFound();
+            }
+
+            MovieFormViewModel viewModel = new MovieFormViewModel
+            {
+                Movie = movie,
+                Genres = _context.Genres
+            };
+
+            // specify name otherwise it will look for a view with a name 'Edit'
+            return View("MovieForm", viewModel);
+        }
+
         //public ActionResult Random()
         //{
         //    Movie movie = new Movie() { Name = "Shrek!" };
