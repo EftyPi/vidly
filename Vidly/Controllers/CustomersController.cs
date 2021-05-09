@@ -9,6 +9,9 @@ using Vidly.ViewModels;
 
 namespace Vidly.Controllers
 {
+    // all of the routes of this controller require the user to be logged in to access them
+    // [Authorize]
+    [Authorize(Roles = RoleName.CAN_MANAGE)]
     public class CustomersController : Controller
     {
         private ApplicationDbContext _context;
@@ -32,6 +35,8 @@ namespace Vidly.Controllers
             return View();
         }
 
+        // requires the user to be logged in to access that route
+        // [Authorize]
         public ActionResult New()
         {
             // get the membership types from the database

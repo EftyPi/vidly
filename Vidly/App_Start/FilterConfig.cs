@@ -8,6 +8,8 @@ namespace Vidly
         public static void RegisterGlobalFilters(GlobalFilterCollection filters)
         {
             filters.Add(new HandleErrorAttribute());
+            // even the home page is restricted with this authorization
+            filters.Add(new AuthorizeAttribute());
         }
     }
 }

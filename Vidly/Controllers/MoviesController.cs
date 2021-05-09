@@ -23,7 +23,12 @@ namespace Vidly.Controllers
         {
             // we get the list from ajax
             // IEnumerable<Movie> movies = _context.Movies.Include(m => m.Genre).ToList();
-            return View();
+            // check if admin is logged in
+            if (User.IsInRole(RoleName.CAN_MANAGE))
+            {
+                return View("Index");
+            }
+            return View("ReadOnlyList");
         }
 
 
@@ -37,7 +42,8 @@ namespace Vidly.Controllers
             return View(movie);
         }
 
-        public ActionResult New()
+        [Authorize(Roles = RoleName.CAN_MANAGE)]
+        public ViewResult New()
         {
             IEnumerable<Genre> genres = _context.Genres.ToList();
             MovieFormViewModel viewModel = new MovieFormViewModel
@@ -50,6 +56,7 @@ namespace Vidly.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = RoleName.CAN_MANAGE)]
         public ActionResult Save(Movie movie)
         {
             if (movie.Id == 0)
@@ -72,6 +79,7 @@ namespace Vidly.Controllers
             return RedirectToAction("Index", "Movies");
         }
 
+        [Authorize(Roles = RoleName.CAN_MANAGE)]
         public ActionResult Edit(int id)
         {
             Movie movie = _context.Movies.SingleOrDefault(m => m.Id == id);
