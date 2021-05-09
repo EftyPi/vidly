@@ -41,12 +41,14 @@ namespace Vidly.Controllers
             IEnumerable<Genre> genres = _context.Genres.ToList();
             MovieFormViewModel viewModel = new MovieFormViewModel
             {
-                Genres = genres
+                Genres = genres,
+                Movie = new Movie()
             };
             return View("MovieForm", viewModel);
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Save(Movie movie)
         {
             if (movie.Id == 0)
