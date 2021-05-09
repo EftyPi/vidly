@@ -21,8 +21,9 @@ namespace Vidly.Controllers
         // GET: Movies
         public ActionResult Index()
         {
-            IEnumerable<Movie> movies = _context.Movies.Include(m => m.Genre).ToList();
-            return View(movies);
+            // we get the list from ajax
+            // IEnumerable<Movie> movies = _context.Movies.Include(m => m.Genre).ToList();
+            return View();
         }
 
 

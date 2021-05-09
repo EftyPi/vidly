@@ -26,9 +26,10 @@ namespace Vidly.Controllers
         // GET: Customers
         public ActionResult Index()
         {
+            // we get the list from ajax
             // to execute the database query must convert it ToList()
-            IEnumerable<Customer> customers = _context.Customers.Include(c => c.MembershipType).ToList();
-            return View(customers);
+            // IEnumerable<Customer> customers = _context.Customers.Include(c => c.MembershipType).ToList();
+            return View();
         }
 
         public ActionResult New()
