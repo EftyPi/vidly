@@ -11,7 +11,7 @@ namespace Vidly.Controllers
 {
     // all of the routes of this controller require the user to be logged in to access them
     // [Authorize]
-    [Authorize(Roles = RoleName.CAN_MANAGE)]
+    
     public class CustomersController : Controller
     {
         private ApplicationDbContext _context;
@@ -32,11 +32,17 @@ namespace Vidly.Controllers
             // we get the list from ajax
             // to execute the database query must convert it ToList()
             // IEnumerable<Customer> customers = _context.Customers.Include(c => c.MembershipType).ToList();
-            return View();
+            // check if admin is logged in
+            if (User.IsInRole(RoleName.CAN_MANAGE))
+            {
+                return View("Index");
+            }
+            return View("ReadOnlyList");
         }
 
         // requires the user to be logged in to access that route
         // [Authorize]
+        [Authorize(Roles = RoleName.CAN_MANAGE)]
         public ActionResult New()
         {
             // get the membership types from the database
@@ -51,6 +57,7 @@ namespace Vidly.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = RoleName.CAN_MANAGE)]
         public ActionResult Save(Customer customer)
         {
             // check if the form is valid
@@ -88,6 +95,8 @@ namespace Vidly.Controllers
             return RedirectToAction("Index", "Customers");
         }
 
+
+        [Authorize(Roles = RoleName.CAN_MANAGE)]
         public ActionResult Edit(int id)
         {
             Customer customer = _context.Customers.SingleOrDefault(c => c.Id == id);
