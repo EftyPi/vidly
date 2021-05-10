@@ -1,0 +1,140 @@
+﻿
+@{
+    ViewBag.Title = "New Rental Fomr";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>New Rental Form</h2>
+
+
+<form id="rentalForm">
+    <div class="form-group">
+        <label>Customer</label>
+        <div class="tt-container">
+            <input id="customer" 
+                   name="customer"
+                   type="text" 
+                   value="" 
+                   class="form-control" 
+                   data-rule-validCustomer="true" 
+                   required />
+        </div>
+    </div>
+    <div class="form-group">
+        <label>Movie</label>
+        <div class="tt-container">
+            <input id="movie" 
+                   name="movie"
+                   type="text" 
+                   value="" 
+                   class="form-control" 
+                   data-rule-validMovieCount="true"/>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 col-sm-4">
+            <ul id="movies" class="list-group"></ul>
+        </div>
+    </div>
+    
+
+    <button class="btn btn-primary">Submit</button>
+</form>
+
+
+@section scripts
+{
+    @Scripts.Render("~/bundles/jqueryval")
+    <script>
+        $(document).ready(function () {
+            var viewModel = {
+                movieIds: []
+            };
+            var customers = new Bloodhound({
+                datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
+                queryTokenizer: Bloodhound.tokenizers.whitespace,
+                remote: {
+                    url: '/api/customers?query=%QUERY',
+                    wildcard: '%QUERY'
+                }
+            });
+
+            $('#customer').typeahead({
+                minLength: 3,
+                highlight: true,
+            }, {
+                name: 'customers',
+                display: 'name',
+                source: customers,
+                limit: 20
+            }).on("typeahead:select", function (e, customer) {
+                viewModel.customerId = customer.id;
+            });
+
+            var movies = new Bloodhound({
+                datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
+                queryTokenizer: Bloodhound.tokenizers.whitespace,
+                remote: {
+                    url: '/api/movies?query=%QUERY',
+                    wildcard: '%QUERY'
+                }
+            });
+
+            $('#movie').typeahead({
+                minLength: 3,
+                highlight: true
+            }, {
+                name: 'movies',
+                display: 'name',
+                source: movies,
+                limit: 20
+            }).on("typeahead:select", function (e, movie) {
+                // add it to the list
+                $("#movies").append("<li class='list-group-item'>" + movie.name + "</li>");
+                // clear the textbox
+                $("#movie").typeahead("val", "");
+                // add it to the view model
+                viewModel.movieIds.push(movie.id);
+            });
+
+
+            $.validator.addMethod("validCustomer", function () {
+                return viewModel.customerId && viewModel.customerId !== 0;
+            }, "Please select a valid customer");
+
+            $.validator.addMethod("validMovieCount", function () {
+                return viewModel.movieIds.length > 0;
+            }, "Please select at least one movie");
+
+
+            var validator = $("#rentalForm").validate({
+                submitHandler: function () {
+                    $.ajax({
+                        url: "/api/rentals",
+                        method: "post",
+                        data: viewModel
+                    })
+                        .done(function () {
+                            toastr.success("Rentals successfully recorded!");
+                            // clear form and list
+                            $("#movie").typeahead("val", "");
+                            $("#customer").typeahead("val", "");
+                            $("#movies").empty();
+                            // clear the view model too
+                            viewModel = { movieIds: [] };
+
+                            validator.resetForm();
+                        })
+                        .fail(function () {
+                            toastr.fail("Something went wrong. Please try again later");
+                        });
+                    // this will prevent the form from submitting automatically
+                    return false;
+                }
+            })
+
+        });
+        
+    </script>
+}
